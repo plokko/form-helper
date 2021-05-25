@@ -1,0 +1,26 @@
+{
+    "name": "plokko/form-helper",
+    "description": "",
+    "keywords": [
+        "laravel",
+        "form",
+        "helper",
+		"vue"
+    ],
+    "require": {
+        "php": ">=7.2",
+        "ext-json": "*",
+        "illuminate/support": ">=5.4.0"
+    },
+    "require-dev": {},
+    "authors": [
+        {
+            "name": "Francesco Pellerone"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "plokko\\FormHelper\\": "src"
+        }
+    }
+}
