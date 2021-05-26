@@ -20,7 +20,15 @@
     ],
     "autoload": {
         "psr-4": {
-            "plokko\\FormHelper\\": "src"
+            "Plokko\\FormHelper\\": "src"
+        }
+    },
+    "require": {},
+    "extra":{
+        "laravel":{
+            "providers":[
+                "Plokko\\FormHelper\\FormHelperServiceProvider"
+            ]
         }
     }
 }

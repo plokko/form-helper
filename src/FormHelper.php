@@ -1,5 +1,5 @@
 <?php
-namespace plokko\FormHelper;
+namespace Plokko\FormHelper;
 
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Renderable;
@@ -77,7 +77,8 @@ class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Rend
      */
     public function render()
     {
-        return '---TODO---';
+        $view = config('form-helper.form-template','form-helper::form');
+        return view($view,$this->toArray());
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace plokko\FormHelper;
+namespace Plokko\FormHelper;
 
 
 use Illuminate\Contracts\Support\Arrayable;
