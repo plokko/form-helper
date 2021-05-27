@@ -20,6 +20,7 @@ use JsonSerializable;
  * @method render():string Renders the form
  *
  * @method label(string $type):$this
+ * @extends \Plokko\FormHelper\FormHelper
  */
 class FormField implements JsonSerializable, IteratorAggregate, Arrayable
 {
@@ -36,9 +37,10 @@ class FormField implements JsonSerializable, IteratorAggregate, Arrayable
 
     function __call($fn,$args){
         if(in_array($fn,[
-            'label',
-        ])){
+                'label',
+            ])){
             $this->attr[$fn]=$args[0];
+            return $this;
         }
         return call_user_func_array([$this->parent,$fn],$args);
     }
@@ -47,7 +49,7 @@ class FormField implements JsonSerializable, IteratorAggregate, Arrayable
      * @param string $type
      * @return $this
      */
-    function type($type='string'){
+    function type($type='text'){
         $this->attr('type',$type);
         return $this;
     }
@@ -105,7 +107,7 @@ class FormField implements JsonSerializable, IteratorAggregate, Arrayable
     {
         $data = array_merge($this->attr,[
             'name' => $this->name,
-            'value' => $this->getValue(),
+            //'value' => $this->getValue(),
         ]);
         return $data;
     }

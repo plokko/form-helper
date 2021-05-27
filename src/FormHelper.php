@@ -12,7 +12,7 @@ class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Rend
     protected
         $action='',$method='post',
         $formView=null,
-        $item = null,
+        $data = null,
         /**
          * @var FormField[]
          */
@@ -23,11 +23,11 @@ class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Rend
 
     /**
      * Set item data
-     * @param $item
+     * @param $data
      * @return $this
      */
-    public function item($item){
-        $this->item=$item;
+    public function data($data){
+        $this->data=$data;
         return $this;
     }
 
@@ -86,24 +86,41 @@ class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Rend
      * @return null|mixed
      */
     public function valueOf($name){
-        if(!$this->item)
+        if(!$this->data)
             return null;
 
-        $v = $this->item;
+        $v = $this->data;
         $split = explode('.',$name);
         foreach($split AS $k){
             if($k=='*')
                 return $v;
-            if(!isset($v->k))
+            if(!isset($v[$k]))
                 return null;
-            $v = $v->k;
+            $v = $v[$k];
         }
         return $v;
     }
+
+    /**
+     * @return array
+     */
+    function getFieldsData(){
+        $fields = [];
+        foreach($this->fields AS $field){
+            $fields[]=$field->toArray();
+        }
+        return $fields;
+    }
+
     //-----------
     public function toArray()
     {
-        return [];
+        return [
+            'action' => $this->action,
+            'method' => $this->method,
+            'fields' => $this->getFieldsData(),
+            'data' => $this->data,
+        ];
     }
 
     public function getIterator()
@@ -135,7 +152,7 @@ class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Rend
      * @return bool
      */
     public function isEdit(){
-        return !!$this->item;
+        return !!$this->data;
     }
 
 
