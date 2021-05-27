@@ -1,12 +1,12 @@
 <?php
 
-
 namespace Plokko\FormHelper;
 
 
 use Illuminate\Contracts\Support\Arrayable;
 use IteratorAggregate;
 use JsonSerializable;
+use Plokko\FormHelper\Traits\FormHelperFallbackTrait;
 
 /**
  * Class FormField
@@ -22,8 +22,9 @@ use JsonSerializable;
  * @method label(string $type):$this
  * @extends \Plokko\FormHelper\FormHelper
  */
-class FormField implements JsonSerializable, IteratorAggregate, Arrayable
+class FormField implements FormHelperInterface, JsonSerializable, IteratorAggregate, Arrayable
 {
+    use FormHelperFallbackTrait;
     protected
         $parent,
         $name,
@@ -148,5 +149,13 @@ class FormField implements JsonSerializable, IteratorAggregate, Arrayable
             $rules = array_unique(array_merge($rules,$this->validation));
         }
         return $rules;
+    }
+
+    /**
+     * Closes field declaration and return to FormHelper
+     * @return FormHelper
+     */
+    public function endField(){
+        return $this->parent;
     }
 }

@@ -3,6 +3,6 @@ return [
     /**
      * View used for form render
      */
-    'form-template' => 'form-helper::form',
+    'form-template' => 'form-helper::vuetify.form',
 
 ];

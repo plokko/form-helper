@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use IteratorAggregate;
 use JsonSerializable;
 
-class FormHelper implements JsonSerializable, IteratorAggregate, Arrayable, Renderable
+class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggregate, Arrayable//, Renderable
 {
     protected
         $action='',$method='post',

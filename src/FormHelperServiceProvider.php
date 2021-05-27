@@ -3,6 +3,8 @@
 namespace Plokko\FormHelper;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
+use Plokko\FormHelper\Components\FormHelperComponent;
 
 class FormHelperServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,9 @@ class FormHelperServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../resources/lang' => resource_path('lang/vendor/'.self::PACKAGE_NAME),
         ]);
+
+        //-- <x-form-helper> component --//
+        Blade::component('form-helper', FormHelperComponent::class);
     }
 
     /**
@@ -44,6 +49,7 @@ class FormHelperServiceProvider extends ServiceProvider
      */
     public function register()
     {
+
         /// Merge default config ///
         $this->mergeConfigFrom(
             __DIR__.'/../config/config.php', self::PACKAGE_NAME
