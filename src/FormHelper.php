@@ -78,7 +78,9 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
     public function render()
     {
         $view = config('form-helper.form-template','form-helper::form');
-        return view($view,$this->toArray());
+        $data = $this->toArray();
+        $data['components'] = config('form-helper.components');
+        return view($view,$data);
     }
 
     /**
@@ -199,4 +201,5 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
     public function validate(Request $request){
         return $request->validate($this->getValidationArray());
     }
+
 }

@@ -5,4 +5,9 @@ return [
      */
     'form-template' => 'form-helper::vuetify.form',
 
+    'components' => [
+        'text' => 'v-text-field',
+        'textarea' => 'v-textarea',
+        'select' => 'v-select',
+    ],
 ];

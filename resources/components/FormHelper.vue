@@ -1,37 +1,40 @@
 <template>
     <div>
         <v-form ref="form" v-model="validForm">
-            <v-alert v-if="error" type="error" :value="true">
-                <strong>{{errorMessage}}</strong>
-            </v-alert>
-
+            <v-expand-transition>
+                <v-alert type="error" v-show="!!error">{{errorMessage}}</v-alert>
+            </v-expand-transition>
             <template v-for="field in fieldList">
                 <slot
                     :name="'field.'+field.name"
-                    v-bind="{field,value:item[field.name],}"
+                    v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
                     >
-                    <component
-                        v-if="field.component"
-                        :field="field"
-                        :item="item"
-                        v-model="item[field.name]"
-                        v-bind="field"
-                        ></component>
                     <slot
-                        v-else
-                        :name="'type.'+field.type"
-                        v-bind="{field,value:item[field.name],}"
+                        :name="'item.'+field.name"
+                        v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
                         >
-                        <v-textarea
-                            v-if="field.type==='textarea'"
-                            v-model="item[field.name]"
-                            v-bind="field"
-                            ></v-textarea>
-                        <v-text-field
-                            v-else
-                            v-model="item[field.name]"
-                            v-bind="field"
-                            ></v-text-field>
+                        <slot
+                            :name="'type.'+field.type"
+                            v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
+                            >
+
+                            <component
+                                v-if="field.type==='file'"
+                                :is="field.component"
+                                v-bind="field"
+
+                                @change="v=>{item[field.name]=v;clearError(field.name);}"
+                                ></component>
+                            <component
+                                v-else
+                                :is="field.component"
+
+                                v-model="item[field.name]"
+                                v-bind="field"
+
+                                @input="clearError(field.name)"
+                                ></component>
+                        </slot>
                     </slot>
                 </slot>
             </template>
@@ -45,10 +48,39 @@
                     ><v-icon left>send</v-icon> {{submitText}}</v-btn>
             </slot>
         </v-form>
-        <pre>{{item}}</pre>
     </div>
 </template>
 <script>
+function flattenObject(ob) {
+    var res = {};
+
+    for (var i in ob) {
+        if (!ob.hasOwnProperty(i)) continue;
+
+        if (!(ob[i] instanceof File) && (typeof ob[i]) == 'object' && ob[i] !== null) {
+            var flatObject = flattenObject(ob[i]);
+            for (var x in flatObject) {
+                if (!flatObject.hasOwnProperty(x)) continue;
+
+                res[i + '['+x+']' ] = flatObject[x];
+            }
+        } else {
+            res[i] = ob[i];
+        }
+    }
+    return res;
+}
+function objectToFormData(item){
+    let data = flattenObject(item);
+
+    let formData = new FormData();
+    for(let key in data){
+        let name = key.replace(/\.([^.]+)/g,'\[$1\]');
+        let value = data[key];
+        formData.append(name,value);
+    }
+    return formData;
+}
 export default {
     name: "FormHelper",
     props: {
@@ -58,6 +90,8 @@ export default {
         value:{type:Object,required:false,},
 
         submitText:{type:String,default:'Submit'},
+
+        components:{type:Object,required:false,default(){return {};},},
     },
     data() {
         let item = Object.assign(Object.fromEntries(this.fields.map(f=>[f.name,null])),this.value||{});
@@ -75,7 +109,13 @@ export default {
     computed: {
 
         fieldList(){
-           return this.fields.map(f=>{
+            let components = Object.assign({
+                    text:'v-text-field',
+                    textarea:'v-textarea',
+                    file:'v-file-input',
+                    select:'v-select',
+                },this.components);
+            return this.fields.map(f=>{
                let field = {type:'text',};
 
                for(let k in f){
@@ -89,12 +129,18 @@ export default {
                        field[k]=f[k];
                    }
                }
-               if(this.errors && this.errors[f.name])
+               if(this.errors && this.errors[f.name]){
                    field['error-messages'] = this.errors[f.name];
+               }
 
-               field.loading=this.loading;
+               if(!field.component ){
+                   //From compoenent map
+                   field.component = components[f.type] || components['text'];
+               }
+
+               field.loading = this.loading;
                return field
-           })
+            });
         },
         isEdit(){
             return !!this.item;
@@ -114,9 +160,10 @@ export default {
             this.loading = true;
             this.error = this.errors = null;
 
-            let data = Object.assign({},data);
+            let data = objectToFormData(this.item||{});
+
             if(this.method!=='post'){
-                data._method = this.method;
+                data.append('_method',this.method);
             }
 
             axios.post(this.action,data)
@@ -130,6 +177,12 @@ export default {
                 })
                 .finally(()=>{this.loading=false;})
                 ;
+        },
+        clearError(name){
+            this.error = null;
+            if(this.errors && this.errors[name]){
+                this.$delete(this.errors,name);
+            }
         },
 
     },

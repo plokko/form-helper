@@ -28,7 +28,9 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
     protected
         $parent,
         $name,
-        $attr=[];
+        $attr=[],
+        $validation=null,
+        $autoValidate=true;
 
     function __construct(FormHelper $parent,$name){
         $this->parent = $parent;
@@ -61,6 +63,20 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
      */
     function required($required=true){
         $this->attr('required',$required);
+        return $this;
+    }
+
+    function min($num){
+        return $this->attr('min',$num);
+    }
+    function max($num){
+        return $this->attr('max',$num);
+    }
+
+    function items(array $items,$itemValue='value',$itemText='text'){
+        $this->attr['items']=$items;
+        $this->attr['item-value']=$itemValue;
+        $this->attr['item-text']=$itemText;
         return $this;
     }
 
@@ -139,9 +155,35 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
     function getValidationArray($action=null){
         $rules = [];
 
+        if(!$this->autoValidate){
+            return $this->validation;
+        }
+        //-- auto validate and merge rules --//
         if($this->required) {
             //Auto field required
             $rules[] = 'required';
+        }
+        switch($this->type){
+            case 'email':
+            case 'file':
+                $rules[] = $this->type;
+                break;
+            //case 'select':
+            default:
+        }
+        /*
+         * if($this->type==='select' && $this->items) {
+            //Auto field required
+            $rules[] = 'in:'.implode(',',$items);
+        }*/
+        foreach(['min','max'] AS $k){
+            if(isset($this->attr[$k])){
+                $rules[] = $k.':'.$this->attr[$k];
+            }
+        }
+        if(!empty($this->attr['items'])){
+            $values = array_map(function($e){ return $e[$this->attr['item-value']]; },$this->attr['items']);
+            $rules[] = Rule::in($values);
         }
 
         if($this->validation!=null){
@@ -157,5 +199,9 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
      */
     public function endField(){
         return $this->parent;
+    }
+    public function autoValidate($autovalidate=true){
+        $this->autoValidate = $autovalidate;
+        return $this;
     }
 }

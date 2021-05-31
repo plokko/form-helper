@@ -5,6 +5,7 @@ namespace Plokko\FormHelper\Traits;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Plokko\FormHelper\FormField;
+use Plokko\FormHelper\FormHelper;
 use Plokko\FormHelper\FormHelperInterface;
 
 trait FormHelperFallbackTrait
@@ -35,18 +36,16 @@ trait FormHelperFallbackTrait
      * @return FormField
      */
     public function field($name){
-		$this->parent->field($name);
-		return $this;
+        return $this->parent->field($name);
 	}
 
     /**
      * Remove a specified field
      * @param string $name Field name
-     * @return $this
+     * @return FormHelper
      */
     public function removeField($name){
-		$this->parent->removeField($name);
-		return $this;
+        return $this->parent->removeField($name);
 	}
 
     /**
