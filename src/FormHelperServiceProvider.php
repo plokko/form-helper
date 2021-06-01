@@ -24,7 +24,7 @@ class FormHelperServiceProvider extends ServiceProvider
 
         //-- Publish Vue components --//
         $this->publishes([
-            __DIR__.'/../resources/js/components' => resource_path('js/components/vendor/'.self::PACKAGE_NAME),
+            __DIR__.'/../resources/components' => resource_path('js/components/vendor/plokko/'.self::PACKAGE_NAME),
         ],'components');
 
         //-- Publish config file --//

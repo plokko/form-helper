@@ -5,6 +5,19 @@ Laravel form helper; automatically generate AJAX forms, validations and much mor
 Install it with composer
 `composer require plokko/form-helper`
 
+To use the Vue component add it in your main `app.js` file by directly referencing it:
+```javascript
+//...
+Vue.component('form-helper', require('../../vendor/plokko/form-helper/resources/components/FormHelper').default);
+```
+Or by referencing the published component:
+
+publish the Vue components with `php artisan vendor:publish --provider="Plokko\FormHelper\FormHelperServiceProvider" --tag=components` then add it to your `app.js` file:
+```javascript
+//...
+Vue.component('form-helper', require('./vendor/plokko/form-helper/FormHelper').default);
+```
+
 ## Use
 
 Define your form in the controller
