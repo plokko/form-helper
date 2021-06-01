@@ -1,2 +1,93 @@
 # Form helper
-Laravel form helper
+Laravel form helper; automatically generate AJAX forms, validations and much more all with a single fluent and fully customizable definition.
+
+## Installation
+Install it with composer
+`composer require plokko/form-helper`
+
+## Use
+
+Define your form in the controller
+```php
+//...
+use Plokko\FormHelper\FormHelper;
+
+class TestController extends Controller
+{
+    //...
+    public function example(Request $request){
+        $form = new FormHelper();
+        //Just an example model as data source
+        $data = User::first();
+        
+        $form
+            //Specify data
+            ->data($data)
+            //Specify form action and method
+            ->action(route('users.edit',1),'patch')
+
+            // Field definition:
+            ->field('name')
+                ->required(true)
+                ->min(3)
+                ->label('User name')
+                //All the field with a prepending ":" will be evaluated as Javascript, usefull for defining functions
+                ->attr(':rule','[v=>!!v || "Campo richiesto",v=> (!!v && v.length>=3)|| "Lunghezza minima 3ch"]')
+            
+            ->field('email')
+                ->type('email')
+                ->label('E-mail')
+                ->required(true)
+
+            ->field('password')
+                ->type('password')
+                ->label('Password')
+                ->attr('min',3)
+
+            ->field('filetest')
+                ->type('file')
+                ->label('File upload')
+            
+            //Redefine all the field labels using the specified translation array;
+            // for example the trans id "users.fields.name" will be assigned as a label to "name"
+            ->labelsFromTrans('users.fields')
+            ;
+
+        return view('your.blade.file',compact('form'));
+    }
+}
+```
+
+Then use the defined form in your blade file:
+```
+    <!-- Renders the form-->
+    {{ $form->render() }}
+    
+    <!-- Render the form with a compoenent; same as before but allows customization -->
+    <x-form-helper :form="$form">
+        @verbatim
+            <!-- Custom slot for a single field (by field name) -->
+            <template v-slot:field.email="{field,item}">
+                <label for="customfield">{{field.label}}</label>
+                <input 
+                    type="email" 
+                    v-model="item.value" 
+                    :name="field.name" 
+                    id="customfield"
+                    />
+            </template>
+           
+            <!-- Custom slot for field type -->
+            <template v-slot:type.file="{field,item}">
+                <label>{{field.label}}
+                    <input 
+                        type="file" 
+                        @change="item.onFileChange"
+                        v-bind="field"
+                        />
+                </label>
+            </template>
+        @endverbatim
+    </x-form-helper>
+    
+```

@@ -8,7 +8,7 @@ use Plokko\FormHelper\Components\FormHelperComponent;
 
 class FormHelperServiceProvider extends ServiceProvider
 {
-    const PACKAGE_NAME='form-helper';
+    const PACKAGE_NAME = 'form-helper';
     /**
      * Bootstrap any application services.
      *
@@ -39,7 +39,7 @@ class FormHelperServiceProvider extends ServiceProvider
         ]);
 
         //-- <x-form-helper> component --//
-        Blade::component('form-helper', FormHelperComponent::class);
+        Blade::component(config('form-helper.form-component','form-helper'), FormHelperComponent::class);
     }
 
     /**
@@ -49,7 +49,6 @@ class FormHelperServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
         /// Merge default config ///
         $this->mergeConfigFrom(
             __DIR__.'/../config/config.php', self::PACKAGE_NAME
