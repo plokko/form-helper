@@ -12,13 +12,6 @@ use Plokko\FormHelper\Traits\FormHelperFallbackTrait;
  * Class FormField
  * @package plokko\FormHelper
  *
- * @method field(string $name):FormField Defines or returns a field
- * @method removeField(string $name):FormHelper Remove specified field
- * @method item($item):FormHelper Set form item
- * @method action(string $action='',string $method='post'):FormHelper Set form action and method
- * @method formView(string $view):FormHelper Set form template
- * @method render():string Renders the form
- *
  * @method label(string $type):$this
  * @extends \Plokko\FormHelper\FormHelper
  */

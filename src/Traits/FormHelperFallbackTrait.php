@@ -12,10 +12,11 @@ trait FormHelperFallbackTrait
 {
 
     /**
+     * Fill form data
      * @param $data
      * @return $this
      */
-    public function data($data){
+    public function fill($data){
 		$this->parent->data($data);
 		return $this;
 	}
