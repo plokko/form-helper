@@ -34,9 +34,9 @@ class TestController extends Controller
         $data = User::first();
         
         $form
-            //Specify data
-            ->data($data)
-            //Specify form action and method
+            // Fill field values
+            ->fill($data)
+            // Specify form action and method
             ->action(route('users.edit',1),'patch')
 
             // Field definition:

@@ -9,12 +9,12 @@ use Illuminate\View\View;
 
 interface FormHelperInterface
 {
-
     /**
+     * Fills the form with specified data as field_name => field_value
      * @param $data
      * @return $this
      */
-    public function data($data);
+    public function fill($data);
 
     /**
      * Set form action and method
@@ -38,6 +38,7 @@ interface FormHelperInterface
     public function removeField($name);
 
     /**
+     * Set the Blade View to use for the form render
      * @param string $view
      * @return $this
      */
@@ -66,13 +67,14 @@ interface FormHelperInterface
     public function validations($rules,$action=null);
 
     /**
+     * Return the value of a field (by field name)
      * @param string $name Field name
      * @return null|mixed
      */
     public function valueOf($name);
 
     /**
-     * Return field data
+     * Return fields data
      * @return array
      */
     function getFieldsData();

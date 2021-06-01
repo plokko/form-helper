@@ -26,7 +26,7 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
      * @param $data
      * @return $this
      */
-    public function data($data){
+    public function fill($data){
         $this->data=$data;
         return $this;
     }
