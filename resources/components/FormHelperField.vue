@@ -1,27 +1,25 @@
 <template>
-    <div>
+    <span>
         <slot
             name="item"
-            v-bind="{fieldData,value:data,clearError:()=>{clearError()}}"
+            v-bind="{field:fieldData,item}"
             >
             <component
                 v-if="fieldData.type==='file'"
                 :is="fieldData.component"
                 v-bind="fieldData"
 
-                @change="v=>{data=v;clearError();}"
+                @change="onFileChange"
                 ></component>
             <component
                 v-else
                 :is="fieldData.component"
-
-                v-model="data"
                 v-bind="fieldData"
 
+                v-model="model"
                 ></component>
         </slot>
-        ITEMVAL: {{data}}
-    </div>
+    </span>
 </template>
 <script>
 export default {
@@ -34,11 +32,29 @@ export default {
         components:{type:Object,required:false,default(){return {};},},
     },
     data() {
+        let self=this;
         return {
             data: this.value,
+            item: {
+                get value(){ return self.model; },
+                set value(v){ self.model = v; },
+
+                get loading(){ return self.loading; },
+                get errors(){ return self.errors; },
+
+                onFileChange(e){self.onFileChange(e);},
+            },
         };
     },
     computed: {
+        model:{
+            get(){return this.data},
+            set(v){
+                this.data = v;
+                this.$emit('input',this.data);
+                this.clearError();
+            }
+        },
         name(){return this.field.name;},
         fieldData(){
             let f = this.field;
@@ -71,17 +87,16 @@ export default {
     },
     methods: {
         clearError(){
-            this.$emit('clearError');
+            this.$emit('clear-error');
+        },
+        onFileChange(e) {
+            let files = e.target.files || e.dataTransfer.files;
+            if(!e.target.multiple)
+                files = files[0]||null;
+            this.model = files;
         },
     },
     watch:{
-        data:{
-            deep:true,
-            handler(){
-                this.$emit('input',this.data);
-                this.clearError();
-            }
-        }
     }
 }
 </script>

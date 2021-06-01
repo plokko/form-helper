@@ -1,44 +1,39 @@
 <template>
-    <div><template
-        v-for="(_, scopedSlotName) in $scopedSlots">scopedSlotName:{{scopedSlotName}}</template>
-        <v-form ref="form" v-model="validForm">
-            <v-expand-transition>
-                <v-alert type="error" v-show="!!error">{{errorMessage}}</v-alert>
-            </v-expand-transition>
-            <template v-for="field in fields">
-                <form-helper-field
-                    :field="field"
-                    :components="componentList"
+    <v-form ref="form" v-model="validForm">
+        <v-expand-transition>
+            <v-alert type="error" ref="error" v-show="!!error">{{errorMessage}}</v-alert>
+        </v-expand-transition>
+        <template v-for="field in fields">
+            <form-helper-field
+                :field="field"
+                :components="componentList"
 
-                    :value="item[field.name]"
-                    @input="v=>item[field.name]=v"
-                    :errors="errors && errors[field.name]"
-                    :loading="loading"
+                :value="item[field.name]"
+                @input="v=>item[field.name]=v"
+                :errors="errors && errors[field.name]"
+                :loading="loading"
 
-                    @clear-error="clearError(field.name)"
-                    ><template
-                        v-slot:item="slotData"
+                @clear-error="clearError(field.name)"
+                ><template
+                    v-slot:item="slotData"
+                    ><slot
+                        :name="'field.'+field.name"
+                        v-bind="slotData"
                         ><slot
-                            :name="'field.'+field.name"
+                            :name="'type.'+(field.type||'text')"
                             v-bind="slotData"
-                            ><slot
-                                :name="'type.'+(field.type||'text')"
-                                v-bind="slotData"
-                                ></slot></slot></template></form-helper-field>
-            </template>
-            <slot></slot>
-            <slot name="submit" v-bind="{submit,canSubmit,loading}">
-                <v-btn
-                    @click="submit"
-                    :disabled="!canSubmit"
-                    :loading="loading"
-                    color="primary"
-                    ><v-icon left>send</v-icon> {{submitText}}</v-btn>
-            </slot>
-        </v-form>
-        <h3>ITEM DUMP:</h3>
-        <pre>{{item}}</pre>
-    </div>
+                            ></slot></slot></template></form-helper-field>
+        </template>
+        <slot></slot>
+        <slot name="submit" v-bind="{submit,canSubmit,loading}">
+            <v-btn
+                @click="submit"
+                :disabled="!canSubmit"
+                :loading="loading"
+                color="primary"
+                ><v-icon left>send</v-icon> {{submitText}}</v-btn>
+        </slot>
+    </v-form>
 </template>
 <script>
 function flattenObject(ob) {
