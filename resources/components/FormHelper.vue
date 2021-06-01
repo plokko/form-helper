@@ -1,44 +1,32 @@
 <template>
-    <div>
+    <div><template
+        v-for="(_, scopedSlotName) in $scopedSlots">scopedSlotName:{{scopedSlotName}}</template>
         <v-form ref="form" v-model="validForm">
             <v-expand-transition>
                 <v-alert type="error" v-show="!!error">{{errorMessage}}</v-alert>
             </v-expand-transition>
-            <template v-for="field in fieldList">
-                <slot
-                    :name="'field.'+field.name"
-                    v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
-                    >
-                    <slot
-                        :name="'item.'+field.name"
-                        v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
-                        >
-                        <slot
-                            :name="'type.'+field.type"
-                            v-bind="{field,value:item[field.name],clearError:()=>{clearError(field.name)}}"
-                            >
+            <template v-for="field in fields">
+                <form-helper-field
+                    :field="field"
+                    :components="componentList"
 
-                            <component
-                                v-if="field.type==='file'"
-                                :is="field.component"
-                                v-bind="field"
+                    :value="item[field.name]"
+                    @input="v=>item[field.name]=v"
+                    :errors="errors && errors[field.name]"
+                    :loading="loading"
 
-                                @change="v=>{item[field.name]=v;clearError(field.name);}"
-                                ></component>
-                            <component
-                                v-else
-                                :is="field.component"
-
-                                v-model="item[field.name]"
-                                v-bind="field"
-
-                                @input="clearError(field.name)"
-                                ></component>
-                        </slot>
-                    </slot>
-                </slot>
+                    @clear-error="clearError(field.name)"
+                    ><template
+                        v-slot:item="slotData"
+                        ><slot
+                            :name="'field.'+field.name"
+                            v-bind="slotData"
+                            ><slot
+                                :name="'type.'+(field.type||'text')"
+                                v-bind="slotData"
+                                ></slot></slot></template></form-helper-field>
             </template>
-
+            <slot></slot>
             <slot name="submit" v-bind="{submit,canSubmit,loading}">
                 <v-btn
                     @click="submit"
@@ -48,6 +36,8 @@
                     ><v-icon left>send</v-icon> {{submitText}}</v-btn>
             </slot>
         </v-form>
+        <h3>ITEM DUMP:</h3>
+        <pre>{{item}}</pre>
     </div>
 </template>
 <script>
@@ -81,6 +71,7 @@ function objectToFormData(item){
     }
     return formData;
 }
+import FormHelperField from './FormHelperField';
 export default {
     name: "FormHelper",
     props: {
@@ -107,40 +98,14 @@ export default {
         };
     },
     computed: {
-
-        fieldList(){
-            let components = Object.assign({
-                    text:'v-text-field',
-                    textarea:'v-textarea',
-                    file:'v-file-input',
-                    select:'v-select',
-                },this.components);
-            return this.fields.map(f=>{
-               let field = {type:'text',};
-
-               for(let k in f){
-                   if(k[0]===':'){
-                       try{
-                           field[k.substr(1)] = eval(f[k]);
-                       }catch(e){
-                           console.error('field "'+k+'" evaluation error:',e);
-                       }
-                   }else{
-                       field[k]=f[k];
-                   }
-               }
-               if(this.errors && this.errors[f.name]){
-                   field['error-messages'] = this.errors[f.name];
-               }
-
-               if(!field.component ){
-                   //From compoenent map
-                   field.component = components[f.type] || components['text'];
-               }
-
-               field.loading = this.loading;
-               return field
-            });
+        componentList(){
+            //Merge defined components with defaults
+            return Object.assign({
+                text:'v-text-field',
+                textarea:'v-textarea',
+                file:'v-file-input',
+                select:'v-select',
+            },this.components);
         },
         isEdit(){
             return !!this.item;
@@ -152,7 +117,7 @@ export default {
         },
         canSubmit(){
             return this.validForm;
-        }
+        },
     },
     methods: {
 
@@ -190,9 +155,12 @@ export default {
         item:{
             deep:true,
             handler(){
-                this.$emit('value',this.item);
+                this.$emit('input',this.item);
             }
         }
+    },
+    components:{
+        FormHelperField,
     }
 }
 </script>
