@@ -105,4 +105,4 @@ Then use the defined form in your blade file:
     
 ```
 
-Continue to the [https://github.com/plokko/form-helper/wiki][wiki] for additional informations
+Continue to the [wiki](https://github.com/plokko/form-helper/wiki) for additional informations
