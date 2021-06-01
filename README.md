@@ -72,7 +72,7 @@ class TestController extends Controller
 ```
 
 Then use the defined form in your blade file:
-```
+```blade
     <!-- Renders the form-->
     {{ $form->render() }}
     
@@ -104,3 +104,5 @@ Then use the defined form in your blade file:
     </x-form-helper>
     
 ```
+
+Continue to the [https://github.com/plokko/form-helper/wiki][wiki] for additional informations

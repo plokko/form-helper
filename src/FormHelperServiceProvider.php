@@ -36,7 +36,7 @@ class FormHelperServiceProvider extends ServiceProvider
         $this->loadTranslationsFrom(__DIR__.'/../resources/lang', self::PACKAGE_NAME);
         $this->publishes([
             __DIR__.'/../resources/lang' => resource_path('lang/vendor/'.self::PACKAGE_NAME),
-        ]);
+        ],'translations');
 
         //-- <x-form-helper> component --//
         Blade::component(config('form-helper.form-component','form-helper'), FormHelperComponent::class);
