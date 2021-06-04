@@ -94,8 +94,7 @@ trait FormHelperFallbackTrait
      * @return null|mixed
      */
     public function valueOf($name){
-		$this->parent->valueOf($name);
-		return $this;
+		return $this->parent->valueOf($name);
 	}
 
     /**
@@ -103,8 +102,7 @@ trait FormHelperFallbackTrait
      * @return array
      */
     function getFieldsData(){
-		$this->parent->getFieldsData();
-		return $this;
+		return $this->parent->getFieldsData();
 	}
 
     /**
@@ -113,9 +111,17 @@ trait FormHelperFallbackTrait
      * @return array validated data
      */
     public function validate(Request $request){
-		$this->parent->validate($request);
-		return $this;
+		return $this->parent->validate($request);
 	}
+    /**
+     * Enable or disable ALL the field auto generated validations
+     * @param bool $enable
+     * @return $this
+     */
+    public function autoValidations($enable=true){
+        $this->parent->autoValidations($enable);
+        return $this;
+    }
 
     /**
      * Returns true if is an edit form, false if it's a create form
@@ -134,4 +140,5 @@ trait FormHelperFallbackTrait
 		$this->parent->getValidationArray();
 		return $this;
 	}
+
 }

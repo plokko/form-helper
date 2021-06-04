@@ -12,10 +12,7 @@ return [
 
     /**
      * Defines Vue component based on type
+     * Example:  'email' => 'custom-email-component'
      */
-    'components' => [
-        'text' => 'v-text-field',
-        'textarea' => 'v-textarea',
-        'select' => 'v-select',
-    ],
+    'components' => [],
 ];

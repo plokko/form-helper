@@ -15,6 +15,7 @@ class FormHelperComponent extends Component
      * FormHelperComponent constructor.
      * @param FormHelperInterface $form
      * @param null|string $template
+     * @param null|array $components
      */
     public function __construct(FormHelperInterface $form,$template=null,$components = null)
     {

@@ -10,20 +10,20 @@
                 v-bind="field.attr"
 
                 @change="field.onFileChange"
-                ></component>
+            ></component>
             <component
                 v-else
                 :is="field.component"
                 v-bind="field.attr"
 
                 v-model="field.value"
-                ></component>
+            ></component>
         </slot>
     </span>
 </template>
 <script>
 export default {
-    name: "FormHelperField",
+    name: "VuetifyFormHelperField",
     props: {
         field:{type:Object,required:true,},
     },

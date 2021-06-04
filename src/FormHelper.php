@@ -17,7 +17,8 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
          * @var FormField[]
          */
         $fields = [],
-        $validations=[];
+        $validations=[],
+        $autoValidations = true;
 
     function __construct(){}
 
@@ -81,6 +82,13 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
         $data = $this->toArray();
         $data['components'] = config('form-helper.components');
         return view($view,$data);
+    }
+
+    public function renderFormAttr()
+    {
+        $data = $this->toArray();
+        $data['components'] = config('form-helper.components',null);
+        return view('form-helper::form-attributes',$data);
     }
 
     /**
@@ -173,25 +181,40 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
      * @return array
      */
     public function getValidationArray(){
-        $rules = $this->validations[null]??[];
         $action = $this->isEdit()?'edit':'create';
+
+        $rules = $this->validations[null]??[];
         if(isset($this->validations[$action])){
             $rules = array_merge($this->validations[$action]);
         }
+
+        if(!$this->autoValidations){
+            return $rules;
+        }
+
+
         //field validations
         foreach($this->fields AS $f){
-            $v = $f->getValidationArray($action);
-            if(count($v)>0){
-                if(isset($rules[$f->name])){
-                    //Merge rules
-                    $rules[$f->name] = array_unique(array_merge($v,is_string($rules[$f->name])?explode('|',$rules[$f->name]):$rules[$f->name]));
-                }else{
-                    $rules[$f->name] = $v;
-                }
-            }
+            /**@var FormField $f**/
+            $v = $f->getFieldValidationArray($action);
+
+            self::deepMergeRules($rules,$v);
         }
 
         return $rules;
+    }
+
+    private static function deepMergeRules(array &$base, $newRules){
+        if(!empty($newRules)){
+            foreach($newRules AS $ruleName=> $newRule){
+                if(isset($base[$ruleName])){
+                    $base[$ruleName] = array_unique(array_merge($base[$ruleName],$newRule));
+                }else{
+                    $base[$ruleName] = $newRule;
+                }
+            }
+        }
+        return $base;
     }
 
     /**
@@ -202,4 +225,13 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
         return $request->validate($this->getValidationArray());
     }
 
+    /**
+     * Enable or disable ALL the field auto generated validations
+     * @param bool $enable
+     * @return $this
+     */
+    public function autoValidations($enable=true){
+        $this->autoValidations = $enable;
+        return $this;
+    }
 }

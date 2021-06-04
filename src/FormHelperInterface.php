@@ -29,7 +29,7 @@ interface FormHelperInterface
      * @return FormField
      */
     public function field($name);
-    
+
     /**
      * Remove a specified field
      * @param string $name Field name
@@ -43,7 +43,7 @@ interface FormHelperInterface
      * @return $this
      */
     public function formView($view);
-    
+
     /**
      * Render the form
      * @return string|View
@@ -78,14 +78,14 @@ interface FormHelperInterface
      * @return array
      */
     function getFieldsData();
-    
+
     /**
      * Validate a request
      * @param Request $request
      * @return array validated data
      */
     public function validate(Request $request);
-    
+
     /**
      * Returns true if is an edit form, false if it's a create form
      * @return bool
@@ -97,5 +97,12 @@ interface FormHelperInterface
      * @return array
      */
     public function getValidationArray();
-    
+
+
+    /**
+     * Enable or disable ALL the field auto generated validations
+     * @param bool $enable
+     * @return $this
+     */
+    public function autoValidations($enable=true);
 }

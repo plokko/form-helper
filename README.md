@@ -76,8 +76,12 @@ Then use the defined form in your blade file:
     <!-- Renders the form-->
     {{ $form->render() }}
     
-    <!-- Render the form with a compoenent; same as before but allows customization -->
-    <x-form-helper :form="$form">
+    <!-- Render the form component; same as before but allows customization -->
+    <form-helper 
+        {{ $form->renderFormAttr() }} 
+        @submit="onSubmit"
+        @error="onError" 
+        >
         @verbatim
             <!-- Custom slot for a single field (by field name) -->
             <template v-slot:field.email="{field,item}">
@@ -101,7 +105,7 @@ Then use the defined form in your blade file:
                 </label>
             </template>
         @endverbatim
-    </x-form-helper>
+    </form-helper>
     
 ```
 
