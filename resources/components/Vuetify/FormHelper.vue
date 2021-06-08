@@ -66,7 +66,7 @@ export default {
                 }
 
                 if(field.items){
-                    if(typeof field.items  === 'object'){
+                    if(!Array.isArray(field.items)){
                         let items = [];
                         let itemText = field['item-text']|| 'text';
                         let itemValue = field['item-value']|| 'value';
