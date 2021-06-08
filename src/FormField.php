@@ -27,6 +27,8 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
         $visible = true,
         $attr=[],
 
+        $items = null,
+
         $validation=[],
         $autoValidate=true;
 
@@ -123,9 +125,11 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
      * @return $this
      */
     function items($items,$itemValue='value',$itemText='text'){
-        $this->attr['items'] = $items;
-        $this->attr['item-value'] = $itemValue;
-        $this->attr['item-text'] = $itemText;
+        $this->items = [
+            'data' => $items,
+            'value'=>$itemValue,
+            'text'=>$itemText
+        ];
         return $this;
     }
 
@@ -198,6 +202,14 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
 
     function __get($k){
         switch($k){
+            case 'items':
+                return optional($this->items)['data'];
+            case 'itemValue':
+            case 'item-value':
+                return optional($this->items)['value'];
+            case 'itemText':
+            case 'item-text':
+                return optional($this->items)['text'];
             case 'name':
             case 'label':
             case 'component':
@@ -214,7 +226,17 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
      * @return mixed|null
      */
     function getValue(){
-        return $this->parent->valueOf($this->name);
+        $v =  $this->parent->valueOf($this->name);
+        if($v && $this->items && $this->items['value']){
+            //filter only values
+            $filterValues = [];
+            $itemValue = $this->items['value'];
+            foreach ($v AS $el){
+                $filterValues[] = $el[$itemValue]??null;
+            }
+            return $filterValues;
+        }
+        return $v;
     }
 
     /**
@@ -240,11 +262,16 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
         ];
         if($this->visible!==true)
             $data['visible'] = $this->visible;
+
         if($this->label)
             $data['label'] = $this->label;
         if($this->component)
             $data['component'] = $this->component;
-
+        if($this->items){
+            $data['items'] = $this->items['data'];
+            $data['item-text'] = $this->items['text'];
+            $data['item-value'] = $this->items['value'];
+        }
         return $data;
     }
 
@@ -299,8 +326,8 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
             }
         }
 
-        if(!empty($this->attr['items'])){
-            $values = array_map(function($e){ return $e[$this->attr['item-value']]; },$this->attr['items']);
+        if($this->items && $this->items['value']){
+            $values = array_map(function($e){ return $e[$this->items['value']]; },$this->items['data']);
             $fieldRules[] = Rule::in($values);
         }
 
@@ -319,6 +346,9 @@ class FormField implements FormHelperInterface, JsonSerializable, IteratorAggreg
             $rootFieldRule = ['array',];
             if($this->required) {
                 $rootFieldRule[] = 'required';
+            }else{
+                $rootFieldRule[] = 'nullable';
+                $rootFieldRule[] = 'sometimes';
             }
 
             foreach(['min','max'] AS $k){

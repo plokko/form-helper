@@ -1,16 +1,19 @@
 <?php
 namespace Plokko\FormHelper;
 
+use Illuminate\Database\Eloquent\Model;
+use IteratorAggregate;
+use JsonSerializable;
+use http\Exception\UnexpectedValueException;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
-use IteratorAggregate;
-use JsonSerializable;
 
 class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggregate, Arrayable//, Renderable
 {
     protected
-        $action='',$method='post',
+        $action='',
+        $method='post',
         $formView=null,
         $data = null,
         /**
@@ -28,7 +31,10 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
      * @return $this
      */
     public function fill($data){
-        $this->data=$data;
+        if($data instanceof Model)
+            $data = $data->toArray();
+
+        $this->data = $data;
         return $this;
     }
 
@@ -51,6 +57,20 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
     public function field($name){
         if(!isset($this->fields[$name])){
             $this->fields[$name] = new FormField($this,$name);
+        }
+        return $this->fields[$name];
+    }
+
+    /**
+     * Define a new querable field
+     * @param string $name
+     * @return QuerableFormField
+     */
+    public function querableField($name){
+        if(!isset($this->fields[$name])){
+            $this->fields[$name] = new QuerableFormField($this,$name);
+        }elseif(!($this->fields[$name] instanceof QuerableFormField)){
+            throw new UnexpectedValueException('Field '.$name.' is not a querable field!');
         }
         return $this->fields[$name];
     }
@@ -96,9 +116,11 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
      * @return null|mixed
      */
     public function valueOf($name){
+        return $this->data ?
+                    ($this->data[$name]?? null):null;
+        /*
         if(!$this->data)
             return null;
-
         $v = $this->data;
         $split = explode('.',$name);
         foreach($split AS $k){
@@ -109,6 +131,7 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
             $v = $v[$k];
         }
         return $v;
+        */
     }
 
     /**
@@ -122,14 +145,24 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
         return $fields;
     }
 
+
     //-----------
+    public function getValues(){
+        $data = [];
+        foreach($this->fields AS $field){
+            /** @var FormField $field*/
+            $data[$field->name] = $field->getValue();
+        }
+        return $data;
+    }
+
     public function toArray()
     {
         return [
             'action' => $this->action,
             'method' => $this->method,
             'fields' => $this->getFieldsData(),
-            'data' => $this->data,
+            'data' => $this->getValues(),
         ];
     }
 
@@ -233,5 +266,37 @@ class FormHelper implements FormHelperInterface, JsonSerializable, IteratorAggre
     public function autoValidations($enable=true){
         $this->autoValidations = $enable;
         return $this;
+    }
+
+    /**
+     * @param Request|null $request
+     * @return bool
+     */
+    public function isProcessable(Request $request=null){
+        return ($request??request())->hasHeader('X-FORMHELPER-FIELDQUERY-FIELD');
+    }
+
+    /**
+     * @param Request|null $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function processRequest(Request $request=null)
+    {
+        if (!$request)
+            $request = request();
+
+        $fieldName = $request->header('X-FORMHELPER-FIELDQUERY-FIELD', null);
+        $search = $request->header('X-FORMHELPER-FIELDQUERY-SEARCH');
+
+        if (empty($this->fields[$fieldName])){
+            abort(404, 'Field ' . $fieldName . ' not fould!');
+        }
+        $field = $this->fields[$fieldName];
+        if(!($field instanceof QuerableFormField)){
+            abort(400,'Field '.$fieldName.' is not a querable field!');
+        }
+
+        $data = $field->_executeSearchQuery($search);
+        return response()->json(['data'=>$data]);
     }
 }

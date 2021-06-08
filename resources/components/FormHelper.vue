@@ -39,7 +39,7 @@ function flattenObject(ob) {
             for (var x in flatObject) {
                 if (!flatObject.hasOwnProperty(x)) continue;
 
-                res[i + '['+x+']' ] = flatObject[x];
+                res[i + '.'+x] = flatObject[x];
             }
         } else {
             res[i] = ob[i];
@@ -54,6 +54,7 @@ function objectToFormData(item){
     for(let key in data){
         let name = key.replace(/\.([^.]+)/g,'\[$1\]');
         let value = data[key];
+        console.log(name,value)
         formData.append(name,value);
     }
     return formData;
@@ -89,8 +90,6 @@ export default {
             return this.fields.map(field=>{
                 let name = field.name;
 
-                if(!field.component)
-                    field.component = this.componentList[field.type] || this.componentList['text'];
 
                 // Parse attributes starting with ":"
                 for(let k in field.attr){
@@ -104,11 +103,6 @@ export default {
                         field.attr[k]=field.attr[k];
                     }
                 }
-                //
-                if(this.errors && this.errors[name]){
-                    field.errors = this.errors[name];
-                }
-
 
                 return field;
             });
@@ -123,29 +117,40 @@ export default {
                 return {
                     field:{
                         name,
-                        type :field.type || 'text',
-                        attr:field.attr,
-                        component:field.component,
+                        type: field.type || 'text',
+                        attr: field.attr,
+                        component: field.component || 'text',
 
-                        get visible(){
-                            if(field.visible===undefined)
-                                return true;
-                            if(typeof field.visible ==='boolean')
-                                return field.visible;
-                            // Eval
-                            return ((field,values)=> eval(this.visible))(field,self.item);
-                        },
+                        items: field.items,
+                        'item-text': field['item-text'],
+                        'item-value': field['item-value'],
+                        /*
+                        get itemsValues(){
+                            return field && field.items &&  (Array.isArray(fields.items)? field.items:Object.values(field.items)).map( e=> (field['item-value'])?e[field['item-value']]:e );
+                        },*/
+
+                        get visible(){return self.computeFieldVisibility(field)},
 
                         get loading(){return self.loading},
 
                         get value(){return self.item[name];},
-                        set value(v){self.updateValue(name,v);},
+                        set value(v){
+                            if(field.type=='file')
+                                self.onFileChange(name,v);
+                            else
+                                self.updateValue(name,v);
+                        },
 
-                        get errors(){return self.errors && self.errors[name];},
+                        get errors(){
+                            return self.flatternErrors[name];
+                        },
+                        get allErrors(){return self.errors;},
                         set errors(v){if(val===null) self.clearErrors(name);},
 
                         clearErrors(){self.clearErrors(name);},
                         onFileChange(e){self.onFileChange(name,e);},
+
+                        search(search){return self.searchQuery(name,search);},
                     },
                 }
             });
@@ -174,6 +179,16 @@ export default {
         canSubmit(){
             return this.$refs.form.checkValidity();
         },
+        flatternErrors(){
+            let errors = {};
+            if(this.errors){
+                for(let k in this.errors){
+                    let baseName = (k.match(/^[^.]+/))[0];
+                    errors[baseName] = this.errors[k];
+                }
+            }
+            return errors;
+        },
     },
     methods: {
 
@@ -181,13 +196,22 @@ export default {
             this.loading = true;
             this.error = this.errors = null;
 
-            let data = objectToFormData(this.item||{});
-
+            let data = Object.assign({},this.item||{});
+            //Remove null files from data to avoid validation conflicts
+            for(let field of this.fields){
+                if(field.type==='file' && data[field.name]==null){
+                    delete data[field.name];
+                }
+            }
+            console.log({data,original:this.item})
+            //Convert to FormData for file uploads
+            let formData = objectToFormData(data);
+            //Add method
             if(this.method!=='post'){
-                data.append('_method',this.method);
+                formData.append('_method',this.method);
             }
 
-            axios.post(this.action,data)
+            axios.post(this.action,formData)
                 .then(r=>{
                     this.$emit('submit',r);
                 })
@@ -199,22 +223,59 @@ export default {
                 .finally(()=>{this.loading=false;})
                 ;
         },
+        computeFieldVisibility(field){
+            if(field.visible===undefined || field.visible===null)
+                return true;
+            if((typeof field.visible) ==='boolean')
+                return field.visible;
+
+            //Eval
+            return ((field, values)=> eval(field.visible))(field,this.item);
+        },
         updateValue(name,value){
-            this.item[name] = value;
             this.clearError(name);
+            this.item[name] = value;
         },
         clearError(name){
             this.error = null;
             if(this.errors && this.errors[name]){
-                this.$delete(this.errors,name);
+                delete this.errors[name];
+                this.errors = Object.assign({},this.errors);
             }
         },
-        onFileChange(name,e) {
-            let files = e.target.files || e.dataTransfer.files;
-            if(!e.target.multiple)
-                files = files[0]||null;
-            this.updateValue(name,files);
+
+
+
+        /**
+         * Execute search for QuerableFormFields
+         * @param {string} name Field name
+         * @param {event}
+         */
+        onFileChange(name,e){
+            if(e instanceof Event){
+                let files = e.target.files || e.dataTransfer.files;
+                if(!e.target.multiple)
+                    files = files[0]||null;
+                this.updateValue(name,files);
+            }else{
+                this.updateValue(name,e);
+            }
         },
+
+        /**
+         * Execute search for QuerableFormFields
+         * @param {string} name Field name
+         * @param {string|mixed} search Search string
+         * @returns {Promise<AxiosResponse<any>>}
+         */
+        searchQuery(name,search){
+            return axios.get('',{
+                headers:{
+                    'X-FORMHELPER-FIELDQUERY-FIELD':name,
+                    'X-FORMHELPER-FIELDQUERY-SEARCH':search,
+                }
+            });
+        }
     },
     watch:{
         item:{

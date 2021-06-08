@@ -31,6 +31,13 @@ interface FormHelperInterface
     public function field($name);
 
     /**
+     * Define a new querable field
+     * @param string $name
+     * @return QuerableFormField
+     */
+    public function querableField($name);
+
+    /**
      * Remove a specified field
      * @param string $name Field name
      * @return $this

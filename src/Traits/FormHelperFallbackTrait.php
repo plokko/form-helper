@@ -7,7 +7,13 @@ use Illuminate\View\View;
 use Plokko\FormHelper\FormField;
 use Plokko\FormHelper\FormHelper;
 use Plokko\FormHelper\FormHelperInterface;
+use Plokko\FormHelper\QuerableFormField;
 
+/**
+ * Trait FormHelperFallbackTrait
+ * @package Plokko\FormHelper\Traits
+ * @property FormHelper $parent;
+ */
 trait FormHelperFallbackTrait
 {
 
@@ -39,6 +45,16 @@ trait FormHelperFallbackTrait
     public function field($name){
         return $this->parent->field($name);
 	}
+
+    /**
+     * Define a new querable field
+     * @param string $name
+     * @return QuerableFormField
+     */
+    public function querableField($name)
+    {
+        return $this->parent->querableField($name);
+    }
 
     /**
      * Remove a specified field

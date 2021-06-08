@@ -60,8 +60,30 @@ export default {
                     field.attr['error-messages'] = field.errors = this.errors[name];
                 }
 
-                if(field.label)
-                    field.attr['label'] = field.label;
+                for(let k of ['label','item-text','item-value']){
+                    if(field[k])
+                        field.attr[k] = field[k];
+                }
+
+                if(field.items){
+                    if(typeof field.items  === 'object'){
+                        let items = [];
+                        let itemText = field['item-text']|| 'text';
+                        let itemValue = field['item-value']|| 'value';
+                        for(let k in field.items){
+                            items.push({
+                                [itemValue]:k,
+                                [itemText]:field.items[k]
+                            });
+                        }
+                        field.attr['items'] = items;
+                        field.attr['item-text'] = itemText;
+                        field.attr['item-value'] = itemValue;
+
+                    } else{
+                        field.attr['items'] = field.items;
+                    }
+                }
 
                 //-- Auto validation rules --//
                 if(!field.attr.rules){
@@ -71,7 +93,7 @@ export default {
                         rules.push( v=> !!v || trans('validation.required',{attribute:field.label||field.name}));
                     }
                     if(field.type === 'email'){
-                        rules.push( v=> (!v || v.match(/[^@]+@[^@]+\.[\w]{2,}/)) || trans('validation.email',{attribute:field.label||field.name}));
+                        rules.push( v=> !!(!v || v.match(/[^@]+@[^@]+\.[\w]{2,}/)) || trans('validation.email',{attribute:field.label||field.name}));
                     }
                     /*
                     if(field.attr.min){
